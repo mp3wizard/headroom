@@ -7,7 +7,13 @@ import sys
 from typing import Any
 
 
-def hf_hub_download_local_first(repo_id: str, filename: str, *, allow_network: bool = True) -> str:
+def hf_hub_download_local_first(
+    repo_id: str,
+    filename: str,
+    *,
+    allow_network: bool = True,
+    revision: str | None = None,
+) -> str:
     """Download a file from HuggingFace Hub, preferring the local cache.
 
     Tries ``local_files_only=True`` first to avoid a network HEAD request when
@@ -21,6 +27,11 @@ def hf_hub_download_local_first(repo_id: str, filename: str, *, allow_network: b
             a cache miss re-raises the local-lookup error. Used by startup
             preload so a cold cache cannot block (or, via native crashes in the
             download stack, kill) the process before it binds its port.
+        revision: Pinned commit SHA to fetch. When ``None`` (the default) the
+            repo's registered pin is used (see :mod:`headroom.hf_pin`), falling
+            back to ``main`` only for repos with no pin. Pinning is a
+            supply-chain control: it prevents a hijacked repo from swapping
+            artifacts on the next cache miss.
 
     Returns:
         Absolute path to the local cached file.
@@ -33,12 +44,19 @@ def hf_hub_download_local_first(repo_id: str, filename: str, *, allow_network: b
     from huggingface_hub import hf_hub_download
     from huggingface_hub.errors import EntryNotFoundError, LocalEntryNotFoundError
 
+    from headroom.hf_pin import pinned_revision
+
+    if revision is None:
+        revision = pinned_revision(repo_id)
+
     try:
-        return str(hf_hub_download(repo_id, filename, local_files_only=True))
+        return str(
+            hf_hub_download(repo_id, filename, local_files_only=True, revision=revision)
+        )
     except (LocalEntryNotFoundError, EntryNotFoundError, OSError):
         if not allow_network:
             raise
-        return str(hf_hub_download(repo_id, filename))
+        return str(hf_hub_download(repo_id, filename, revision=revision))
 
 
 def create_cpu_session_options(

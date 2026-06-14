@@ -65,9 +65,10 @@ def _build_core(model_id: str):
     import torch
     from huggingface_hub import hf_hub_download
 
+    from headroom.hf_pin import pinned_revision
     from headroom.transforms.kompress_compressor import _get_model_class
 
-    ckpt_path = hf_hub_download(model_id, "merged.pt")
+    ckpt_path = hf_hub_download(model_id, "merged.pt", revision=pinned_revision(model_id))
     ckpt = torch.load(ckpt_path, map_location="cpu")
     for key in ("encoder_state_dict", "token_head_state_dict", "span_conv_state_dict"):
         if key not in ckpt:
@@ -175,7 +176,9 @@ def _verify(model_id: str, core, out_path: Path, np, torch) -> None:
     import onnxruntime as ort
     from transformers import AutoTokenizer
 
-    tok = AutoTokenizer.from_pretrained(BASE_MODEL)
+    from headroom.hf_pin import pinned_revision
+
+    tok = AutoTokenizer.from_pretrained(BASE_MODEL, revision=pinned_revision(BASE_MODEL))
     sample = (
         "The proxy compresses tool outputs before they reach the model. "
         "Errors and stack traces should survive; boilerplate should not. "

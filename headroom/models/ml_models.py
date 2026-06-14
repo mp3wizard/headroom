@@ -165,10 +165,14 @@ class MLModelRegistry:
                 logger.info(f"Loading SentenceTransformer: {model_name}")
                 from sentence_transformers import SentenceTransformer
 
+                from headroom.hf_pin import pinned_revision
+
                 if device is None:
                     device = cls._detect_device()
 
-                model = SentenceTransformer(model_name, device=device)
+                model = SentenceTransformer(
+                    model_name, device=device, revision=pinned_revision(model_name)
+                )
                 instance._models[key] = model
                 logger.info(f"Loaded SentenceTransformer: {model_name} on {device}")
 
@@ -204,11 +208,14 @@ class MLModelRegistry:
                 logger.info(f"Loading SIGLIP: {model_name}")
                 from transformers import AutoModel, AutoProcessor
 
+                from headroom.hf_pin import pinned_revision
+
                 if device is None:
                     device = cls._detect_device()
 
-                model = AutoModel.from_pretrained(model_name)
-                processor = AutoProcessor.from_pretrained(model_name)
+                _rev = pinned_revision(model_name)
+                model = AutoModel.from_pretrained(model_name, revision=_rev)
+                processor = AutoProcessor.from_pretrained(model_name, revision=_rev)
 
                 # Move to device and set eval mode
                 if device != "cpu":
@@ -292,11 +299,17 @@ class MLModelRegistry:
                 logger.info(f"Loading technique router: {model_path}")
                 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
+                from headroom.hf_pin import pinned_revision
+
                 if device is None:
                     device = cls._detect_device()
 
-                tokenizer = AutoTokenizer.from_pretrained(model_path)
-                model = AutoModelForSequenceClassification.from_pretrained(model_path)
+                # revision is ignored when model_path is a local directory.
+                _rev = pinned_revision(model_path)
+                tokenizer = AutoTokenizer.from_pretrained(model_path, revision=_rev)
+                model = AutoModelForSequenceClassification.from_pretrained(
+                    model_path, revision=_rev
+                )
 
                 # Move to device and set eval mode
                 if device != "cpu":

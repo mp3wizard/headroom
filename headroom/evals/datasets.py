@@ -33,6 +33,8 @@ from typing import Any
 
 from headroom.evals.core import EvalCase, EvalSuite
 
+from headroom.hf_pin import pinned_revision
+
 
 def _check_datasets_installed() -> None:
     """Check if HuggingFace datasets is installed."""
@@ -71,7 +73,7 @@ def load_hotpotqa(
     _check_datasets_installed()
     from datasets import load_dataset
 
-    ds = load_dataset("hotpotqa/hotpot_qa", "fullwiki", split=split)
+    ds = load_dataset("hotpotqa/hotpot_qa", "fullwiki", split=split, revision=pinned_revision("hotpotqa/hotpot_qa"))
 
     cases: list[EvalCase] = []
     for i, item in enumerate(ds):
@@ -123,7 +125,7 @@ def load_natural_questions(
     _check_datasets_installed()
     from datasets import load_dataset
 
-    ds = load_dataset("google-research-datasets/natural_questions", "default", split=split)
+    ds = load_dataset("google-research-datasets/natural_questions", "default", split=split, revision=pinned_revision("google-research-datasets/natural_questions"))
 
     cases: list[EvalCase] = []
     for i, item in enumerate(ds):
@@ -200,7 +202,7 @@ def load_triviaqa(
     _check_datasets_installed()
     from datasets import load_dataset
 
-    ds = load_dataset("trivia_qa", subset, split=split)
+    ds = load_dataset("trivia_qa", subset, split=split, revision=pinned_revision("trivia_qa"))
 
     cases: list[EvalCase] = []
     for i, item in enumerate(ds):
@@ -271,7 +273,7 @@ def load_msmarco(
     _check_datasets_installed()
     from datasets import load_dataset
 
-    ds = load_dataset("microsoft/ms_marco", "v2.1", split=split)
+    ds = load_dataset("microsoft/ms_marco", "v2.1", split=split, revision=pinned_revision("microsoft/ms_marco"))
 
     cases: list[EvalCase] = []
     for i, item in enumerate(ds):
@@ -339,7 +341,7 @@ def load_squad(
     _check_datasets_installed()
     from datasets import load_dataset
 
-    ds = load_dataset("rajpurkar/squad_v2", split=split)
+    ds = load_dataset("rajpurkar/squad_v2", split=split, revision=pinned_revision("rajpurkar/squad_v2"))
 
     cases: list[EvalCase] = []
     for i, item in enumerate(ds):
@@ -401,7 +403,7 @@ def load_longbench(
     from datasets import load_dataset
 
     try:
-        ds = load_dataset("THUDM/LongBench", task, split="test")
+        ds = load_dataset("THUDM/LongBench", task, split="test", revision=pinned_revision("THUDM/LongBench"))
     except Exception as e:
         raise ValueError(f"Failed to load LongBench task '{task}': {e}") from e
 
@@ -460,7 +462,7 @@ def load_narrativeqa(
     _check_datasets_installed()
     from datasets import load_dataset
 
-    ds = load_dataset("deepmind/narrativeqa", split=split)
+    ds = load_dataset("deepmind/narrativeqa", split=split, revision=pinned_revision("deepmind/narrativeqa"))
 
     cases: list[EvalCase] = []
     for i, item in enumerate(ds):
@@ -624,7 +626,7 @@ def load_toolbench(
     from datasets import load_dataset
 
     try:
-        ds = load_dataset("ToolBench/ToolBench", category, split="test")
+        ds = load_dataset("ToolBench/ToolBench", category, split="test", revision=pinned_revision("ToolBench/ToolBench"))
     except Exception as e:
         raise ValueError(f"Failed to load ToolBench category '{category}': {e}") from e
 
@@ -707,7 +709,7 @@ def load_codesearchnet(
     from datasets import load_dataset
 
     try:
-        ds = load_dataset("code_search_net", language, split=split)
+        ds = load_dataset("code_search_net", language, split=split, revision=pinned_revision("code_search_net"))
     except Exception as e:
         raise ValueError(f"Failed to load CodeSearchNet for '{language}': {e}") from e
 
@@ -762,7 +764,7 @@ def load_humaneval(
     _check_datasets_installed()
     from datasets import load_dataset
 
-    ds = load_dataset("openai_humaneval", split="test")
+    ds = load_dataset("openai_humaneval", split="test", revision=pinned_revision("openai_humaneval"))
 
     cases: list[EvalCase] = []
     for i, item in enumerate(ds):

@@ -112,4 +112,13 @@ RUN python -m venv /opt/headroom-venv && \
 
 COPY e2e/wrap ./e2e/wrap
 
+# Run the e2e harness as a non-root user (DS-0002). All build steps above
+# (apt, NodeSource, npm -g, venv creation) need root; at runtime the harness
+# only reads the venvs / global npm packages and reads/writes /workspace.
+# /workspace and both venvs are chowned to the new user; global npm modules
+# under /usr/lib are world-readable so `npx openclaw` still resolves.
+RUN useradd --create-home --uid 1001 headroom && \
+    chown -R headroom:headroom /workspace /opt/headroom-venv /opt/aider-venv
+USER headroom
+
 CMD ["python", "e2e/wrap/run.py"]

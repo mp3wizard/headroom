@@ -115,10 +115,17 @@ def _load_tokenizer(tokenizer_name: str):
     """
     from transformers import AutoTokenizer
 
+    from headroom.hf_pin import pinned_revision
+
     try:
         return AutoTokenizer.from_pretrained(
             tokenizer_name,
-            trust_remote_code=True,
+            # trust_remote_code=False (the safe default): the tokenizers in
+            # MODEL_TO_TOKENIZER are all official repos with standard tokenizer
+            # configs, so executing arbitrary repo-supplied code is unnecessary
+            # and would be a supply-chain RCE vector if any repo were hijacked.
+            trust_remote_code=False,
+            revision=pinned_revision(tokenizer_name),
         )
     except Exception as e:
         logger.warning(f"Failed to load tokenizer {tokenizer_name}: {e}")

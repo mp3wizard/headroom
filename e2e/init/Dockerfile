@@ -76,4 +76,11 @@ RUN python -m venv /opt/headroom-venv && \
     /opt/headroom-venv/bin/python -m pip install "$(ls /tmp/wheels/headroom_ai-*.whl)[proxy]" && \
     /opt/headroom-venv/bin/python -c "from headroom._core import DiffCompressor; print('headroom._core OK')"
 
+# Run the e2e harness as a non-root user (DS-0002). All build steps above
+# need root; the harness only reads the venv and reads/writes /workspace,
+# both chowned to the new user.
+RUN useradd --create-home --uid 1001 headroom && \
+    chown -R headroom:headroom /workspace /opt/headroom-venv
+USER headroom
+
 CMD ["python", "e2e/init/run.py"]

@@ -2079,10 +2079,24 @@ def create_app(config: ProxyConfig | None = None) -> FastAPI:
             _upstream_check_cache["expires_at"] = time.monotonic() + _UPSTREAM_CHECK_TTL
 
     # CORS
+    #
+    # The proxy binds to loopback and is authenticated purely by explicit
+    # request headers (Authorization / x-api-key forwarded upstream) — it never
+    # relies on cookies or other ambient credentials. We therefore keep the
+    # wildcard origin so local SDK adapters / browser dev tools can tag and send
+    # cross-origin requests, but DISABLE credentialed CORS.
+    #
+    # Security note: with allow_credentials=True, Starlette reflects the caller's
+    # Origin and emits `Access-Control-Allow-Credentials: true` even when
+    # allow_origins=["*"]. Combined with DNS rebinding (see loopback_guard.py),
+    # that would let a malicious page read responses from a victim's local proxy.
+    # Setting allow_credentials=False forces any cross-origin caller to supply the
+    # API-key header itself (which attacker JS cannot), closing that gap without
+    # breaking the legitimate, unauthenticated cross-origin tagging use case.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
-        allow_credentials=True,
+        allow_credentials=False,
         allow_methods=["*"],
         allow_headers=["*"],
     )

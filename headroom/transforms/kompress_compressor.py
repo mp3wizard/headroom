@@ -291,7 +291,13 @@ def _get_model_class() -> type:
 
         def __init__(self, model_name: str = "answerdotai/ModernBERT-base"):
             super().__init__()
-            self.encoder = AutoModel.from_pretrained(model_name, attn_implementation="eager")
+            from headroom.hf_pin import pinned_revision
+
+            self.encoder = AutoModel.from_pretrained(
+                model_name,
+                attn_implementation="eager",
+                revision=pinned_revision(model_name),
+            )
             hidden_size = self.encoder.config.hidden_size  # 768
 
             # Head 1: Token keep/discard

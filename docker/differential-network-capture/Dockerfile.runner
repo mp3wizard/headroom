@@ -9,6 +9,12 @@ RUN npm install -g "${CLAUDE_CODE_PACKAGE}"
 
 WORKDIR /workspace
 COPY run-claude-lane.sh /usr/local/bin/run-claude-lane
-RUN chmod +x /usr/local/bin/run-claude-lane
+RUN chmod +x /usr/local/bin/run-claude-lane \
+    && chown -R node:node /workspace
+
+# Run as the non-root `node` user shipped by the base image (DS-0002).
+# The global npm install above needs root; everything the lane runner does
+# happens under /workspace, which is now owned by `node`.
+USER node
 
 ENTRYPOINT ["run-claude-lane"]

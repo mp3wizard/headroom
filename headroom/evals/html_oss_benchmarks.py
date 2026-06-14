@@ -29,6 +29,8 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any
 
+from headroom.hf_pin import pinned_revision
+
 logger = logging.getLogger(__name__)
 
 
@@ -155,7 +157,7 @@ def evaluate_scrapinghub_benchmark(
 
     # Load the benchmark dataset
     logger.info("Loading Scrapinghub article extraction benchmark...")
-    dataset = load_dataset("allenai/scrapinghub-article-extraction-benchmark")
+    dataset = load_dataset("allenai/scrapinghub-article-extraction-benchmark", revision=pinned_revision("allenai/scrapinghub-article-extraction-benchmark"))
     samples = dataset["train"]
 
     if max_samples:
@@ -287,9 +289,9 @@ def evaluate_qa_accuracy_preservation(
     logger.info(f"Loading {dataset_name} dataset...")
 
     if dataset_name == "squad":
-        dataset = load_dataset("rajpurkar/squad_v2", split="validation")
+        dataset = load_dataset("rajpurkar/squad_v2", split="validation", revision=pinned_revision("rajpurkar/squad_v2"))
     elif dataset_name == "hotpotqa":
-        dataset = load_dataset("hotpotqa/hotpot_qa", "fullwiki", split="validation")
+        dataset = load_dataset("hotpotqa/hotpot_qa", "fullwiki", split="validation", revision=pinned_revision("hotpotqa/hotpot_qa"))
     else:
         raise ValueError(f"Unknown dataset: {dataset_name}")
 
