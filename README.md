@@ -86,9 +86,8 @@ Headroom compresses everything your AI agent reads — tool outputs, logs, RAG c
 ## Get started (60 seconds)
 
 ```bash
-# 1 — Install
-pip install "headroom-ai[all]"          # Python
-npm install headroom-ai                 # Node / TypeScript
+# 1 — Install from this fork (builds the Rust core from source via maturin)
+pip install "headroom-ai[all] @ git+https://github.com/mp3wizard/headroom.git"
 
 # 2 — Pick your mode
 headroom wrap claude                    # wrap a coding agent
@@ -240,25 +239,40 @@ Provider and tool-specific behavior lives under `headroom/providers/` so core or
 
 ## Install
 
+This fork is installed **from source** (it is not published to PyPI). Building the Rust
+core requires a Rust toolchain — `maturin` fetches `rustup` automatically if `cargo` is
+absent (see [Corporate / SSL-inspection environments](#corporate--ssl-inspection-environments)
+if that download is blocked).
+
 ```bash
-pip install "headroom-ai[all]"          # Python, everything
-npm install headroom-ai                 # TypeScript / Node
-docker pull ghcr.io/chopratejas/headroom:latest
+# Install directly from the fork (everything)
+pip install "headroom-ai[all] @ git+https://github.com/mp3wizard/headroom.git"
+
+# …or clone first, then install
+git clone https://github.com/mp3wizard/headroom.git && cd headroom
+pip install ".[all]"
 ```
 
-Granular extras: `[proxy]`, `[mcp]`, `[ml]` (Kompress-base), `[code]`, `[memory]`, `[relevance]`, `[image]`, `[agno]`, `[langchain]`, `[evals]`, `[pytorch-mps]` (Apple-GPU memory-embedder offload — set `HEADROOM_EMBEDDER_RUNTIME=pytorch_mps`). Requires **Python 3.10+**.
+Granular extras: `[proxy]`, `[mcp]`, `[ml]` (Kompress-base), `[code]`, `[memory]`, `[relevance]`, `[image]`, `[agno]`, `[langchain]`, `[evals]`, `[pytorch-mps]` (Apple-GPU memory-embedder offload — set `HEADROOM_EMBEDDER_RUNTIME=pytorch_mps`). Requires **Python 3.10–3.13** (3.14 is not yet supported by some dependencies).
 
 Using `pipx`? Choose a supported interpreter explicitly:
 
 ```bash
-pipx install --python python3.13 "headroom-ai[all]"
+pipx install --python python3.13 "headroom-ai[all] @ git+https://github.com/mp3wizard/headroom.git"
+```
+
+**macOS (Apple clang 21 / SDK 26):** if the Rust build fails with `'cstdint' file not found`
+while compiling a C++ dependency, point the C++ compiler at the SDK's libc++ headers before installing:
+
+```bash
+export CXXFLAGS="-isysroot $(xcrun --show-sdk-path) -I$(xcrun --show-sdk-path)/usr/include/c++/v1"
 ```
 
 → [Installation guide](https://headroom-docs.vercel.app/docs/installation) — Docker tags, persistent service, PowerShell, devcontainers.
 
 ### Corporate / SSL-inspection environments
 
-If `pip install "headroom-ai[all]"` fails with `CERTIFICATE_VERIFY_FAILED`
+If the install fails with `CERTIFICATE_VERIFY_FAILED`
 (`unable to get local issuer certificate`), your network uses **SSL inspection** — a MITM
 proxy presenting a company-issued CA. The build backend (`maturin`) downloads `rustup` over a
 connection your TLS stack doesn't trust. **Install Rust first** so the build doesn't fetch it:
@@ -270,8 +284,8 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh && rustup default
 winget install Rustlang.Rustup && rustup default stable
 ```
 
-Restart your shell, then `pip install "headroom-ai[all]"`. A prebuilt wheel avoids the Rust
-build entirely where available: `pip install --only-binary headroom-ai headroom-ai`.
+Restart your shell, then re-run the install. (This fork builds the Rust core from source — there
+is no prebuilt wheel to fall back to, so a working Rust toolchain is required.)
 
 Two runtime assets are fetched over TLS; if they are blocked, trust your corporate CA via
 `REQUESTS_CA_BUNDLE` / `SSL_CERT_FILE` / `CURL_CA_BUNDLE`:
@@ -319,7 +333,7 @@ Headroom runs **locally**, covers **every** content type, works with every major
 ## Contributing
 
 ```bash
-git clone https://github.com/chopratejas/headroom.git && cd headroom
+git clone https://github.com/mp3wizard/headroom.git && cd headroom
 uv sync --extra dev && uv run pytest
 ```
 
