@@ -28,7 +28,8 @@ def client():
         cost_tracking_enabled=False,
     )
     app = create_app(config)
-    with TestClient(app) as client:
+    # CCR endpoints are loopback-gated (#1227).
+    with TestClient(app, base_url="http://127.0.0.1", client=("127.0.0.1", 12345)) as client:
         yield client
     reset_compression_store()
 
@@ -67,7 +68,7 @@ class TestCCRRetrieveEndpoint:
         response = client.post("/v1/retrieve", json={"hash": "nonexistent123"})
         assert response.status_code == 404
         assert "Entry not found" in response.json()["detail"]
-        assert "CCR TTL: 300 seconds" in response.json()["detail"]
+        assert "CCR TTL: 1800 seconds" in response.json()["detail"]
 
     def test_retrieve_expired_hash_reports_expiration_detail(self, client):
         """Expired entries report expiration separately from missing hashes."""
@@ -263,7 +264,7 @@ class TestCCRStatsEndpoint:
         data = response.json()
         assert "store" in data
         assert data["store"]["entry_count"] == 0
-        assert data["store"]["default_ttl_seconds"] == 300
+        assert data["store"]["default_ttl_seconds"] == 1800
         assert "recent_retrievals" in data
 
     def test_stats_exposes_env_configured_ttl(self, client, monkeypatch):
@@ -453,7 +454,8 @@ class TestEndToEndTOINIntegration:
             cost_tracking_enabled=False,
         )
         app = create_app(config)
-        with TestClient(app) as client:
+        # CCR endpoints are loopback-gated (#1227).
+        with TestClient(app, base_url="http://127.0.0.1", client=("127.0.0.1", 12345)) as client:
             yield client
         reset_compression_store()
 
